@@ -1,5 +1,6 @@
 # NFL Sentiment Analysis
 This repository contains a Python project that scrapes Twitter data and performs sentiment analysis on tweets related to NFL teams using the RoBERTa pre-trained model.
+this model is meant to be used IN-SEASON for upcoming games, some context will change and model might not be as effective if used in the offseason due to context indicators
 
 ## Key Features
 
