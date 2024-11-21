@@ -11,7 +11,7 @@ This repository contains a Python project that scrapes Twitter data and performs
 
 1. Clone the repo
 ```
-git clone https://github.com/cam-cc/ROBERTA-NFL-Sentiment-Analysis.git
+git clone https://github.com/cam-cc/NFL-sentiment-analysis.git
 ```
 
 2. install necessary requirements
