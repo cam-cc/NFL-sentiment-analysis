@@ -10,6 +10,9 @@ This repository contains a Python project that scrapes Twitter data and performs
 ## Examples
 ![image](https://github.com/user-attachments/assets/d5f6069e-2952-498a-9bd6-4925c4bcd3e2)
 
+Model accounts for common NFL related context suchas having a first overall pick whilst still in-season is not good, and injury context analysis
+if a starting NFL quarterback is out for rest of season that is not good.
+
 ## Installation
 
 1. Clone the repo
