@@ -1,5 +1,5 @@
 import twitter_scrape as ts
-from utils.utils import *
+from utils import *
 from preprocess import *
 import time
 from datetime import datetime
@@ -12,9 +12,9 @@ password = os.getenv('TWITTER_PASSWORD')
 
 if __name__ == "__main__":
     # Get team info
-    teams = ['Green Bay Packers']
-    start_date = "2024-09-05"
-    end_date = "2024-11-10"
+    teams = ['Denver Broncos']
+    start_date = "2024-11-10"
+    end_date = "2024-11-23"
     
     for team in teams:
         print(f"Collecting tweets for {team}...")

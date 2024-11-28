@@ -2,7 +2,15 @@ from datetime import datetime
 import re
 from typing import Dict, List
 import emoji
-from utils.utils import *
+from utils import *
+
+def clean_tweet(tweet):
+    tweet = tweet.replace(',', ' ')
+    tweet = tweet.replace('\n', ' ')
+    tweet = re.sub(r'http\S+|www\S+|https\S+', '', tweet, flags=re.MULTILINE)
+    tweet = re.sub(r'@\w+', '', tweet)
+    tweet = ' '.join(tweet.split())
+    return tweet
 
 def analyze_game_context(text: str) -> Dict[str, float]:
     """
@@ -156,10 +164,3 @@ def preprocess_sports_text(text: str) -> Dict[str, any]:
         'original_emojis': emoji_list
     }
     
-def clean_tweet(tweet):
-    tweet = tweet.replace(',', ' ')
-    tweet = tweet.replace('\n', ' ')
-    tweet = re.sub(r'http\S+|www\S+|https\S+', '', tweet, flags=re.MULTILINE)
-    tweet = re.sub(r'@\w+', '', tweet)
-    tweet = ' '.join(tweet.split())
-    return tweet
