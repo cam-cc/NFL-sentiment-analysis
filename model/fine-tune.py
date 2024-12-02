@@ -37,13 +37,13 @@ except Exception as e:
             DATA_PATH,
             encoding='utf-8',
             escapechar='\\',
-            quoting=1,  # csv.QUOTE_ALL
+            quoting=1,  
             on_bad_lines='skip'
         )
     except Exception as e:
         print(f"Second attempt failed: {e}")
-        # Last resort: read with minimal processing
         df = pd.read_csv(DATA_PATH, on_bad_lines='skip', engine='python')
+        
 # Print data info
 print("\nDataset Info:")
 print(df.info())
@@ -59,7 +59,7 @@ if missing_columns:
 df = df[required_columns]
 
 # Data cleanup
-df = df.dropna()  # Remove rows with missing values
+df = df.dropna()  
 df = df[df['sentiment'].isin(['negative', 'neutral', 'positive'])]  
 
 # Convert sentiment labels to integers
