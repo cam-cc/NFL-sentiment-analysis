@@ -1,14 +1,3 @@
-SPORTS_STOPWORDS = {
-    'yard', 'quarter', 'touchdown', 'field', 'goal', 'pass', 'run',
-    'game', 'score', 'playoff', 'season', 'snap', 'drive', 'ball', 'tackle',
-    'sack', 'punt', 'kick', 'fumble', 'interception', 'offense', 'defense',
-    'receiver', 'quarterback', 'running back', 'linebacker', 'safety', 'cornerback',
-    'kicker', 'punter', 'rushing', 'passing', 'coverage', 'blocking', 'penalty',
-    'first down', 'turnover', 'huddle', 'scrimmage', 'endzone', 'sideline',
-    'playbook', 'roster', 'depth chart', 'formation', 'blitz', 'screen'
-}
-
-# Team name variations
 TEAM_NAMES = {
     'colts': 'Indianapolis Colts',
     'indy': 'Indianapolis Colts',

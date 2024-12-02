@@ -43,7 +43,7 @@ def analyze_game_context(text: str) -> Dict[str, float]:
             if number_match := re.search(r'\d+', match.group()):
                 streak_length = int(number_match.group())
                 # Increase impact for longer streaks
-                streak_value *= min(streak_length, 5)  # Cap at 5 for reasonable bounds
+                streak_value *= min(streak_length, 5) 
             context_sentiment += streak_value
             modifiers['streak'] = streak_type
     
@@ -59,7 +59,7 @@ def analyze_game_context(text: str) -> Dict[str, float]:
             modifiers['season_negative'] = term
             
     injury_keywords = [
-        'injured', 'injury', 'out', 'hurt', 'surgery', 'ir', 
+        'injured', 'injury', 'out', 'hurt', 'surgery', 
         'injured reserve', 'acl', 'mcl', 'concussion'
     ]
     
@@ -68,7 +68,7 @@ def analyze_game_context(text: str) -> Dict[str, float]:
         'running back', 'wide receiver', 'tight end', 'defensive', 'offensive',
         'roster', 'depth chart',
         # Add specific player references
-        'dak', 'prescott'  # You might want to load these from a player names file
+        'dak', 'prescott' 
     ]
             
     text_lower = text.lower()
@@ -79,22 +79,21 @@ def analyze_game_context(text: str) -> Dict[str, float]:
         modifiers['injury_context'] = True
         # Enhanced injury severity check
         severity_indicators = {
-            'season': -0.9,
-            'months': -0.8,
-            'weeks': -0.6,
-            'out': -0.5
+            'season': -1.2,  
+            'months': -1.1,  
+            'weeks': -0.9,   
         }
         
-        # Find the most severe modifier
-        max_severity = -0.5  # default moderate negative
+        max_severity = -0.8  
         for indicator, value in severity_indicators.items():
             if indicator in text_lower:
-                max_severity = min(max_severity, value)  # Use min since these are negative values
+                max_severity = min(max_severity, value)  
                 
-        context_sentiment += max_severity
-        modifiers['injury_severity'] = abs(max_severity)  # Store the severity level 
-    
-    # Draft context check (fixed the modifiers reset bug)
+        context_sentiment += max_severity * 2.0  
+        if any(indicator in text_lower for indicator in severity_indicators):
+            modifiers['injury_severity'] = abs(max_severity) 
+            
+    # Draft context 
     draft_keywords = [
         'draft pick', 'first overall', 'draft position', 'tank', 'tanking',
         'draft order', 'draft spot', 'top pick', 'draft class'
@@ -104,11 +103,14 @@ def analyze_game_context(text: str) -> Dict[str, float]:
     
     if is_draft_related:
         modifiers['draft_context'] = True
-        if any(x in text.lower() for x in ['first overall', 'top pick', 'early pick']):
-            context_sentiment -= 0.8  # Strong negative modifier
-        else:
-            context_sentiment -= 0.5  # Moderate negative modifier
+        if any(x in text.lower() for x in ['first overall', 'top pick', 'early pick', 'tank', 'tanking']):
+            context_sentiment -= 5.0
+            modifiers['high_draft_pick'] = True
+        elif any(x in text.lower() for x in ['late round', 'late pick']):
+            context_sentiment += 2.0
+            modifiers['late_draft_pick'] = True
             
+     
     return {
         'context_sentiment': context_sentiment,
         'modifiers': modifiers
@@ -163,4 +165,3 @@ def preprocess_sports_text(text: str) -> Dict[str, any]:
         'emoji_count': len(emoji_list),
         'original_emojis': emoji_list
     }
-    

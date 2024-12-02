@@ -58,13 +58,13 @@ def get_unique_tweets(username, password, team, start_date, end_date, max_tweets
     options.add_argument('--start-maximized')
     driver = webdriver.Chrome(options=options)
    
-    # login (because twitter forces me too) 
+    # login 
     if not twitter_login(driver, username, password):
         driver.quit()
         return None
     
     # Search Query 
-    search_url = f"https://twitter.com/search?q={team}%20lang%3Aen%20-filter:replies%20-filter:retweets%20since%3A{start_date}%20until%3A{end_date}&src=typed_query&f=live"
+    search_url = f"https://twitter.com/search?q={team}%20lang%3Aen%20-filter:videos%20-filter:media%20-filter:replies%20-filter:retweets%20since%3A{start_date}%20until%3A{end_date}&src=typed_query&f=live"
     driver.get(search_url)
     time.sleep(3)
     
@@ -84,7 +84,7 @@ def get_unique_tweets(username, password, team, start_date, end_date, max_tweets
                 try:
                     text = tweet.find_element(By.CSS_SELECTOR, '[data-testid="tweetText"]').text
                     
-                    # avoid replies and retweets(duplicates)
+                    # avoid replies and retweets (duplicates)
                     if (text.startswith('@') or 
                         text.startswith('RT @') or 
                         'Replying to @' in text):

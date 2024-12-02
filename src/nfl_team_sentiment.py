@@ -12,9 +12,9 @@ password = os.getenv('TWITTER_PASSWORD')
 
 if __name__ == "__main__":
     # Get team info
-    teams = ['Denver Broncos']
-    start_date = "2024-11-10"
-    end_date = "2024-11-23"
+    teams = ['New York Jets']
+    start_date = "2024-11-23"
+    end_date = "2024-11-30"
     
     for team in teams:
         print(f"Collecting tweets for {team}...")
