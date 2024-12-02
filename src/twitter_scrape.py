@@ -99,7 +99,15 @@ def get_unique_tweets(username, password, team, start_date, end_date, max_tweets
                     if cleaned_text not in seen_tweets:
                         user_info = tweet.find_element(By.CSS_SELECTOR, '[data-testid="User-Name"]')
                         username = user_info.text.split('\n')[0]
-                        timestamp = tweet.find_element(By.TAG_NAME, "time").get_attribute("datetime")
+                        try:
+                            time_element = WebDriverWait(driver, 10).until(
+                                EC.presence_of_element_located((By.TAG_NAME, "time"))
+                            )
+                            timestamp = time_element.get_attribute("datetime")
+                        except Exception as e:
+                            print("Time element not found, skipping timestamp extraction")
+                            timestamp = None
+                            
                         # sentiment analysis with RoBERTa
                         sentiment_scores = analyze_sentiment(cleaned_text)
                         

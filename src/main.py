@@ -11,8 +11,7 @@ username = os.getenv('TWITTER_USERNAME')
 password = os.getenv('TWITTER_PASSWORD')
 
 if __name__ == "__main__":
-    # Get team info
-    teams = ['New York Jets']
+    teams = ['Indianapolis Colts']
     start_date = "2024-11-23"
     end_date = "2024-11-30"
     

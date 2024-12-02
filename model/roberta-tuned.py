@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 #%% Configure Device and Paths
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -19,37 +20,20 @@ print(f"Using device: {device}")
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
-DATA_PATH = os.path.join(project_root, 'data', 'all_sentiments.csv')
+DATA_PATH = os.path.join(project_root, 'data', 'nfl_sentiments.csv')
 MODEL_SAVE_PATH = os.path.join(project_root, 'model', 'nfl_sentiment_model_final')
 
 print("Data path:", DATA_PATH)
 print("Model save path:", MODEL_SAVE_PATH)
 
 #%% Load and Prepare Data#%% Load and Prepare Data
-try:
-    # First attempt with automatic delimiter detection
-    df = pd.read_csv(DATA_PATH, sep=None, engine='python', on_bad_lines='skip')
-except Exception as e:
-    print(f"First attempt failed: {e}")
-    try:
-        # Second attempt with explicit CSV handling
-        df = pd.read_csv(
-            DATA_PATH,
-            encoding='utf-8',
-            escapechar='\\',
-            quoting=1,  
-            on_bad_lines='skip'
-        )
-    except Exception as e:
-        print(f"Second attempt failed: {e}")
-        df = pd.read_csv(DATA_PATH, on_bad_lines='skip', engine='python')
-        
+df = pd.read_csv(DATA_PATH, sep=None, engine='python', on_bad_lines='skip')
 # Print data info
 print("\nDataset Info:")
 print(df.info())
 print("\nColumns found:", df.columns.tolist())
 
-# Ensure we have required columns
+# load required columns
 required_columns = ['text', 'sentiment']
 missing_columns = [col for col in required_columns if col not in df.columns]
 if missing_columns:
@@ -102,24 +86,28 @@ class NFLDataset(Dataset):
 
 #%% Initialize Model and Tokenizer
 train_df, eval_df = train_test_split(df, test_size=0.2, random_state=99, stratify=df['label'])
+test_df, eval_df = train_test_split(eval_df, test_size=0.5, random_state=99, stratify=eval_df['label'])
 model_name = "cardiffnlp/twitter-roberta-base-sentiment-latest"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(
     model_name,
-    num_labels=3
+    num_labels=3,
+    hidden_dropout_prob=0.1
 )
 model.to(device)
 
 #%% Create Datasets and Dataloaders
 train_dataset = NFLDataset(train_df['text'].values, train_df['label'].values, tokenizer)
 eval_dataset = NFLDataset(eval_df['text'].values, eval_df['label'].values, tokenizer)
+test_dataset = NFLDataset(test_df['text'].values, test_df['label'].values, tokenizer)
 
-train_dataloader = DataLoader(train_dataset, batch_size=8, shuffle=True)
-eval_dataloader = DataLoader(eval_dataset, batch_size=8)
+train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+eval_dataloader = DataLoader(eval_dataset, batch_size=32)
+test_dataloader = DataLoader(test_dataset, batch_size=32)
 
 #%% Training Setup
-num_epochs = 4
-optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5)
+num_epochs = 2
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.00005, weight_decay=0.01)
 num_training_steps = len(train_dataloader) * num_epochs
 scheduler = get_linear_schedule_with_warmup(
     optimizer,
@@ -161,6 +149,8 @@ def evaluate(model, dataloader):
     total_loss = 0
     correct_predictions = 0
     total_predictions = 0
+    true_labels = []
+    predicted_labels = []
     
     with torch.no_grad():
         for batch in tqdm(dataloader, desc='Evaluating'):
@@ -176,8 +166,10 @@ def evaluate(model, dataloader):
             correct_predictions += (predictions == labels).sum().item()
             total_predictions += labels.shape[0]
             total_loss += loss.item()
+            true_labels.extend(labels.cpu().numpy())
+            predicted_labels.extend(predictions.cpu().numpy())
     
-    return total_loss / len(dataloader), correct_predictions / total_predictions
+    return total_loss / len(dataloader), correct_predictions / total_predictions, true_labels, predicted_labels
 
 #%% Training Loop
 best_accuracy = 0
@@ -207,21 +199,21 @@ for epoch in range(num_epochs):
     })
 
 #%% Plot Results
-stats_df = pd.DataFrame(training_stats)
+tr_metrics = pd.DataFrame(training_stats)
 
 plt.figure(figsize=(12, 4))
 
 plt.subplot(1, 2, 1)
-plt.plot(stats_df['train_loss'], label='train')
-plt.plot(stats_df['eval_loss'], label='val')
+plt.plot(tr_metrics['train_loss'], label='train')
+plt.plot(tr_metrics['eval_loss'], label='val')
 plt.title('Training Loss')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.legend()
 
 plt.subplot(1, 2, 2)
-plt.plot(stats_df['train_acc'], label='train')
-plt.plot(stats_df['eval_acc'], label='val')
+plt.plot(tr_metrics['train_acc'], label='train')
+plt.plot(tr_metrics['eval_acc'], label='val')
 plt.title('Training Accuracy')
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
@@ -257,7 +249,8 @@ test_texts = [
     "Love watching the Colts play! Great team!",
     "Terrible game today, very disappointed",
     "Just another regular game from the Colts",
-    "Dak Prescott injuring his hamstring has positioned Dallas Cowboys into a tough spot with playoff hopes possibly over. #NFL"
+    "Dak Prescott injuring his hamstring has positioned Dallas Cowboys into a tough spot with playoff hopes possibly over. #NFL",
+    "WITH DAK PRESCOTT OUT FOR AT LEAST 4 MONTHS WHERE DO THE DALLAS COWBOYS GO FROM HERE!? WHAT DOES THE FUTURE LOOK LIKE??"
 ]
 
 print("\nTesting model predictions:")
@@ -265,5 +258,26 @@ for text in test_texts:
     sentiment = predict_sentiment(text)
     print(f"\nText: {text}")
     print(f"Predicted sentiment: {sentiment}")
+
+# %%
+# Print classification report for test cases
+from sklearn.metrics import classification_report
+_, _, true_labels, predicted_labels = evaluate(model, test_dataloader)
+
+print("\nClassification Report:")
+print(classification_report(true_labels, predicted_labels))
+
+# %%
+# Confusion Matrix
+from sklearn.metrics import confusion_matrix
+
+conf_matrix = confusion_matrix(true_labels, predicted_labels)
+plt.figure(figsize=(10, 7))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=['negative', 'neutral', 'positive'], yticklabels=['negative', 'neutral', 'positive'])
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+plt.savefig(os.path.join(project_root, 'model', 'confusion_matrix.png'))
+plt.show()
 
 # %%
