@@ -98,16 +98,8 @@ class NFLSentimentAnalyzer:
             
         except Exception as e:
             print(f"Error in get_sentiment_scores: {str(e)}")
-            return {
-                'negative': 0.0,
-                'neutral': 1.0, 
-                'positive': 0.0,
-                'label': 'neutral',
-                'score': 1.0,
-                'raw_outputs': [0.0, 1.0, 0.0],
-                'context_modifiers': {}
-            }
-    
+            return None
+        
 # Initialize the analyzer as a global instance
 _sentiment_analyzer = None
 def get_analyzer():
