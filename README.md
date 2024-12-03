@@ -6,8 +6,8 @@
 
 A sophisticated machine learning project that performs real-time sentiment analysis on NFL-related social media content using the RoBERTa pre-trained model. The analysis provides valuable insights into public sentiment towards NFL teams during the active season.
 
-📊 [View Dataset on Kaggle](INSERT_KAGGLE_LINK)  
-📝 [Read the Article on Medium](INSERT_MEDIUM_LINK)
+📊 [View Dataset on Kaggle](https://www.kaggle.com/datasets/cammyc/nfl-twitter-sentiment-analysis)
+📝 [Read the Article on Medium](https://medium.com/@909cambam/nfl-sentiment-analysis-web-scraper-f9a0b5f70c57)
 
 ## 🌟 Key Features
 
